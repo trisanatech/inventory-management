@@ -117,6 +117,25 @@ export const api = createApi({
       }),
       invalidatesTags: ["Users"],
     }),
+    signup: build.mutation<
+      { token: string },
+      { name: string; email: string; password: string }
+    >({
+      query: ({
+        name,
+        email,
+        password,
+      }: {
+        name: string;
+        email: string;
+        password: string;
+      }) => ({
+        url: "/signup",
+        method: "POST",
+        body: { name, email, password },
+      }),
+      invalidatesTags: ["Users"],
+    }),
   }),
 });
 
@@ -128,4 +147,5 @@ export const {
   useGetUsersQuery,
   useGetExpensesByCategoryQuery,
   useLoginMutation,
+  useSignupMutation,
 } = api;

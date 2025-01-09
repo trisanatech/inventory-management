@@ -43,3 +43,33 @@ export const login = async (req: Request, res: Response): Promise<void> => {
 
   res.json({ token });
 };
+
+export const signup = async (req: Request, res: Response): Promise<void> => {
+  const { name, email, password } = req.body;
+  if (!name || !email || !password) {
+    res.status(400).json({ message: "Name, email, and password are required" });
+    return;
+  }
+  const existingUser = await prisma.user.findUnique({
+    where: { email },
+  });
+  if (existingUser) {
+    res.status(400).json({ message: "Email already exists" });
+    return;
+  }
+  const hashedPassword = await bcrypt.hash(password, 10);
+  const user = await prisma.user.create({
+    data: {
+      name,
+      email,
+      password: hashedPassword,
+      role: { connect: { name: "user" } },
+    },
+  });
+  res.json({ user });
+  // catch
+  // (error) {
+  //   console.error(error);
+  //   res.status(500).json({ message: "Internal server error" });
+  // }
+};
