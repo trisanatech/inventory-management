@@ -27,6 +27,7 @@ app.use((0, cors_1.default)());
 /* ROUTES */
 //app.use("/dashboard", dashboardRoutes); // http://localhost:8000/dashboard
 app.use("/products", productRoutes_1.default); // http://localhost:8000/products
+app.use("/", productRoutes_1.default); // http://localhost:8000/products
 app.use("/users", userRoutes_1.default); // http://localhost:8000/users
 //app.use("/expenses", expenseRoutes); // http://localhost:8000/expenses
 /* SERVER */

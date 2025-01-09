@@ -158,7 +158,7 @@ const Sidebar = () => {
         {/* Products with Submenu */}
         <div>
           <SidebarLink
-            href="/products"
+            href="#"
             icon={Clipboard}
             label="Products"
             isCollapsed={isSidebarCollapsed}
@@ -166,16 +166,23 @@ const Sidebar = () => {
           />
           {openSubMenu === "products" && !isSidebarCollapsed && (
             <div className="pl-8">
-              <SidebarLink
-                href="/products/submenu1"
+               <SidebarLink
+                href="/products/categories"
                 icon={Clipboard}
-                label="Submenu product 1"
+                label="Categories"
                 isCollapsed={isSidebarCollapsed}
               />
               <SidebarLink
-                href="/products/submenu2"
+                href="/products"
                 icon={Clipboard}
-                label="Submenu product 2"
+                label="Products"
+                isCollapsed={isSidebarCollapsed}
+              />
+             
+              <SidebarLink
+                href="/products/variants"
+                icon={Clipboard}
+                label="Product Variants"
                 isCollapsed={isSidebarCollapsed}
               />
             </div>

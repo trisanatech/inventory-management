@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createProductVariant = exports.getProductVariants = exports.createProduct = exports.getProducts = exports.createCategory = exports.getCategories = void 0;
+exports.createProductVariant = exports.getProductVariants = exports.createProduct = exports.getProducts = exports.deleteCategory = exports.updateCategory = exports.createCategory = exports.getCategories = void 0;
 const client_1 = require("@prisma/client");
 const prisma = new client_1.PrismaClient();
 /**
@@ -68,6 +68,61 @@ const createCategory = (req, res) => __awaiter(void 0, void 0, void 0, function*
     }
 });
 exports.createCategory = createCategory;
+const updateCategory = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { id } = req.params; // Get the category ID from the route params.
+        const { name, description } = req.body; // Destructure the updated fields from the request body.
+        // Ensure the ID is provided and is a valid integer.
+        const categoryId = parseInt(id, 10);
+        if (isNaN(categoryId)) {
+            res.status(400).json({ message: "Invalid category ID" });
+            return;
+        }
+        // Update the category record in the database.
+        const updatedCategory = yield prisma.categories.update({
+            where: { id: categoryId },
+            data: {
+                name, // Update the name if provided.
+                description, // Update the description if provided.
+            },
+        });
+        // Send the updated category as a response.
+        res.status(200).json(updatedCategory);
+    }
+    catch (error) {
+        res.status(500).json({ message: "Error updating category", error });
+    }
+});
+exports.updateCategory = updateCategory;
+const deleteCategory = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { id } = req.params;
+        // Ensure the ID is provided and valid
+        if (!id) {
+            res.status(400).json({ message: "Category ID is required" });
+            return;
+        }
+        // Check if the category exists
+        const category = yield prisma.categories.findUnique({
+            where: { id: parseInt(id, 10) },
+        });
+        if (!category) {
+            res.status(404).json({ message: "Category not found" });
+            return;
+        }
+        // Delete the category
+        yield prisma.categories.delete({
+            where: { id: parseInt(id, 10) },
+        });
+        // Send success response
+        res.status(200).json({ message: "Category deleted successfully" });
+    }
+    catch (error) {
+        // Handle errors
+        res.status(500).json({ message: "Error deleting category", error });
+    }
+});
+exports.deleteCategory = deleteCategory;
 /**
  * Retrieves all products or a specific product by ID.
  * If an ID is provided in the request params, it fetches the product with that ID.
