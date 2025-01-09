@@ -51,7 +51,7 @@ export interface User {
 export const api = createApi({
   baseQuery: fetchBaseQuery({ baseUrl:  process.env.NEXT_PUBLIC_API_BASE_URL }),
   reducerPath: "api", 
-  tagTypes: ["DashboardMetrics","Products","ProductVariants", "Users"], 
+  tagTypes: ["DashboardMetrics","Products","ProductVariants", "Categories", "Users"], 
   endpoints: (builder) => ({
 
     getDashboardMetrics: builder.query<DashboardMetrics, void>({
@@ -59,14 +59,44 @@ export const api = createApi({
           providesTags: ["DashboardMetrics"],
         }),
     
-    getCategories: builder.query<Category[], void>({
-      query: () => "/categories",
-    }),
-    getCategoryById: builder.query<Category, number>({
-      query: (id) => `/categories/${id}`,
-    }),
+        getCategories: builder.query<Category[], string | void>({
+          query: (search) => ({
+            url: "/product/categories",
+            params: search ? { search } : {}, // Include search query params if provided
+          }),
+          providesTags: ["Categories"], // Enable caching and invalidation
+        }),
+        
+        getCategoryById: builder.query<Category, number>({
+          query: (id) => `/categories/${id}`,
+        }),
+        
+        createCategory: builder.mutation<Category, Partial<Category>>({
+          query: (newCategory) => ({
+            url: "/product/categories",
+            method: "POST",
+            body: newCategory,
+          }),
+          invalidatesTags: ["Categories"], // Invalidate cache after creation
+        }),
 
-    
+        updateCategory: builder.mutation({
+          query: ({ id, ...categoryData }) => ({
+            url: `/product/categories/${id}`,
+            method: "PUT",
+            body: categoryData,
+          }),
+          invalidatesTags: ["Categories"],
+        }),
+        
+        deleteCategory: builder.mutation({
+          query: (id) => ({
+            url: `/product/categories/${id}`,
+            method: "DELETE",
+          }),
+          invalidatesTags: ["Categories"],
+        }),
+     
     getProducts: builder.query<Product[], string | void>({
       query: (search) => ({
         url: "/products",
@@ -154,9 +184,14 @@ export const {
   
   useGetCategoriesQuery,
   useGetCategoryByIdQuery,
+  useCreateCategoryMutation,
+  useUpdateCategoryMutation,
+  useDeleteCategoryMutation,
+
   useGetProductsQuery,
   useGetProductByIdQuery,
   useCreateProductMutation,
+
   useGetProductVariantsQuery,
   useGetProductVariantByIdQuery,
   useCreateProductVariantMutation,

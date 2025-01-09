@@ -65,6 +65,67 @@ export const createCategory = async (req: Request, res: Response): Promise<void>
   }
 };
 
+export const updateCategory = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params; // Get the category ID from the route params.
+    const { name, description } = req.body; // Destructure the updated fields from the request body.
+
+    // Ensure the ID is provided and is a valid integer.
+    const categoryId = parseInt(id, 10);
+    if (isNaN(categoryId)) {
+      res.status(400).json({ message: "Invalid category ID" });
+      return;
+    }
+
+    // Update the category record in the database.
+    const updatedCategory = await prisma.categories.update({
+      where: { id: categoryId },
+      data: {
+        name,        // Update the name if provided.
+        description, // Update the description if provided.
+      },
+    });
+
+    // Send the updated category as a response.
+    res.status(200).json(updatedCategory);
+  } catch (error) {
+    res.status(500).json({ message: "Error updating category", error });
+  }
+};
+
+export const deleteCategory = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+
+    // Ensure the ID is provided and valid
+    if (!id) {
+      res.status(400).json({ message: "Category ID is required" });
+      return;
+    }
+
+    // Check if the category exists
+    const category = await prisma.categories.findUnique({
+      where: { id: parseInt(id, 10) },
+    });
+
+    if (!category) {
+      res.status(404).json({ message: "Category not found" });
+      return;
+    }
+
+    // Delete the category
+    await prisma.categories.delete({
+      where: { id: parseInt(id, 10) },
+    });
+
+    // Send success response
+    res.status(200).json({ message: "Category deleted successfully" });
+  } catch (error) {
+    // Handle errors
+    res.status(500).json({ message: "Error deleting category", error });
+  }
+};
+
 
 /**
  * Retrieves all products or a specific product by ID.
