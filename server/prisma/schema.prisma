@@ -13,121 +13,170 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-
-model User {
-  id        Int     @id @default(autoincrement())
+model Users {
+  userId    String  @id
+  name      String
   email     String  @unique
   password  String
   roleId    Int
-  role      Role    @relation(fields: [roleId], references: [id])
+  role      Roles   @relation(fields: [roleId], references: [id])
+  audits    Audits[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
 }
 
-model Role {
+model Roles {
   id          Int          @id @default(autoincrement())
   name        String
-  permissions Permission[]
-  users       User[]
+  permissions Permissions[]
+  users       Users[]
 }
 
-model Permission {
-  id        Int    @id @default(autoincrement())
-  action    String // The action that the permission grants (e.g., "read", "write")
-  object    String // The object that the action relates to (e.g., "inventory", "warehouse")
-  roles     Role[] 
+model Permissions {
+  id        Int     @id @default(autoincrement())
+  action    String  // The action that the permission grants (e.g., "read", "write")
+  object    String  // The object or resource the permission applies to (e.g., "inventory")
+  roles     Roles[]
 }
 
 model Categories {
-  categoryId String @id
-  name       String
+  id          Int       @id @default(autoincrement())
+  name        String    @db.VarChar(255)
   description String?
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @default(now()) @updatedAt
-  Products   Products[]
-}
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
-model ProductVariants {
-  productVariantId String  @id
-  productId        String
-  sku              String  @unique
-  variantName      String?
-  attributes       Json?
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @default(now()) @updatedAt
-  product          Products @relation(fields: [productId], references: [productId])
-  Inventory        Inventory[] @relation("InventoryToProductVariants")
+  // Relations
+  products    Products[]
 }
 
 model Products {
-  productId     String       @id
-  name          String
-  categoryId    String
-  description   String?
-  unit          String       // e.g., "kg", "ton"
-  hasVariants   Boolean      @default(false)
-  createdAt     DateTime     @default(now())
-  updatedAt     DateTime     @default(now()) @updatedAt
-  category      Categories   @relation(fields: [categoryId], references: [categoryId])
-  ProductVariants ProductVariants[]
+  productId        String                  @id
+  name             String
+  description      String?
+  price            Float
+  imageUrl         String?
+  categoryId       Int?
+  createdAt        DateTime                @default(now())
+  updatedAt        DateTime                @default(now()) @updatedAt
+
+  // Relations
+  category         Categories?             @relation(fields: [categoryId], references: [id])
+  ProductVariants  ProductVariants[]
+  StockMovements   StockMovements[]       // Relation for stock movements
 }
 
+model ProductVariants {
+  productVariantId String                  @id
+  productId        String
+  sku              String                  @unique
+  variantName      String?
+  attributes       Json?
+  createdAt        DateTime                @default(now())
+  updatedAt        DateTime                @default(now()) @updatedAt
+
+  // Relations
+  product          Products                @relation(fields: [productId], references: [productId])
+  Inventory        Inventory[]
+  SalesOrderLineItems SalesOrderLineItems[]
+  PurchaseOrderLineItems PurchaseOrderLineItems[]
+}
 
 model Inventory {
-  inventoryId     String @id
+  inventoryId      String          @id
   productVariantId String
-  warehouseStock   Int    @default(0)
-  shopStock        Int    @default(0)
-  lastUpdated      DateTime @default(now())
+  warehouseStock   Int             @default(0)
+  shopStock        Int             @default(0)
+  lastUpdated      DateTime        @default(now())
+
+  // Relations
   productVariant   ProductVariants @relation(fields: [productVariantId], references: [productVariantId])
-  ProductVariants  ProductVariants @relation("InventoryToProductVariants")
+  audits           Audits[]        @relation("InventoryAudits")
+}
+
+model StockMovements {
+  movementId  String    @id
+  productId   String
+  type        String    // "Sales", "Purchase", or "Adjustment"
+  quantity    Int
+  timestamp   DateTime  @default(now())
+
+  // Relations
+  product     Products  @relation(fields: [productId], references: [productId])
+}
+
+model Audits {
+  id            Int       @id @default(autoincrement())
+  userId        String
+  action        String    // e.g., "Stock Adjustment", "Inventory Movement"
+  inventoryId   String
+  warehouseId   Int
+  oldQuantity   Int
+  newQuantity   Int
+  timestamp     DateTime  @default(now())
+
+  // Relations
+  user          Users     @relation(fields: [userId], references: [userId])
+  inventory     Inventory @relation("InventoryAudits", fields: [inventoryId], references: [inventoryId])
 }
 
 model Sales {
-  saleId      String   @id
-  customerName String
-  customerContact String?
-  orderDate   DateTime @default(now())
-  dueDate     DateTime
-  status      String   @default("Pending")  // Pending, Completed, Cancelled
-  totalAmount Float
-  paymentStatus String @default("Unpaid") // Unpaid, Paid, Partial
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @default(now()) @updatedAt
+  saleId              String               @id
+  customerName        String
+  customerContact     String?
+  orderDate           DateTime             @default(now())
+  dueDate             DateTime
+  status              String               @default("Pending")  // Pending, Completed, Cancelled
+  totalAmount         Float
+  paymentStatus       String               @default("Unpaid")  // Unpaid, Paid, Partial
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @default(now()) @updatedAt
+
+  // Relations
   SalesOrderLineItems SalesOrderLineItems[]
+  SalesPayments       SalesPayments[]
 }
 
 model SalesOrderLineItems {
-  id              String  @id
+  id              String           @id
   salesOrderId    String
   productVariantId String
   quantity        Int
   unitPrice       Float
   totalPrice      Float
-  salesOrder      Sales @relation(fields: [salesOrderId], references: [saleId])
-  productVariant  ProductVariants @relation(fields: [productVariantId], references: [productVariantId])
+
+  // Relations
+  salesOrder      Sales            @relation(fields: [salesOrderId], references: [saleId])
+  productVariant  ProductVariants  @relation(fields: [productVariantId], references: [productVariantId])
 }
 
 model Purchases {
-  purchaseId    String   @id
-  supplierName  String
-  supplierPhone String
-  orderDate     DateTime @default(now())
-  expectedDeliveryDate DateTime?
-  status        String   @default("Pending")  // Pending, Received, Cancelled
-  totalAmount   Float
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @default(now()) @updatedAt
+  purchaseId            String                   @id
+  supplierName          String
+  supplierPhone         String
+  orderDate             DateTime                 @default(now())
+  expectedDeliveryDate  DateTime?
+  status                String                   @default("Pending")  // Pending, Received, Cancelled
+  totalAmount           Float
+  createdAt             DateTime                 @default(now())
+  updatedAt             DateTime                 @default(now()) @updatedAt
+
+  // Relations
   PurchaseOrderLineItems PurchaseOrderLineItems[]
+  PurchasePayments      PurchasePayments[]
 }
 
 model PurchaseOrderLineItems {
-  id                String   @id
+  id                String           @id
   purchaseOrderId   String
   productVariantId  String
   quantity          Int
   unitPrice         Float
   totalPrice        Float
-  purchaseOrder     Purchases @relation(fields: [purchaseOrderId], references: [purchaseId])
-  productVariant    ProductVariants @relation(fields: [productVariantId], references: [productVariantId])
+  
+  // Relations
+  purchaseOrder     Purchases        @relation(fields: [purchaseOrderId], references: [purchaseId])
+  productVariant    ProductVariants  @relation(fields: [productVariantId], references: [productVariantId])
 }
 
 model SalesPayments {
@@ -136,16 +185,20 @@ model SalesPayments {
   paymentDate  DateTime @default(now())
   amountPaid   Float
   paymentMethod String  // Cash, Card, Transfer, etc.
-  status       String  // "Completed", "Pending"
-  salesOrder   Sales   @relation(fields: [salesOrderId], references: [saleId])
+  status       String   // "Completed", "Pending"
+
+  // Relations
+  salesOrder   Sales    @relation(fields: [salesOrderId], references: [saleId])
 }
 
 model PurchasePayments {
-  paymentId    String   @id
+  paymentId       String   @id
   purchaseOrderId String
-  paymentDate  DateTime @default(now())
-  amountPaid   Float
-  paymentMethod String  // Cash, Transfer, etc.
-  status       String  // "Completed", "Pending"
-  purchaseOrder Purchases @relation(fields: [purchaseOrderId], references: [purchaseId])
+  paymentDate     DateTime @default(now())
+  amountPaid      Float
+  paymentMethod   String  // Cash, Transfer, etc.
+  status          String  // "Completed", "Pending"
+
+  // Relations
+  purchaseOrder   Purchases @relation(fields: [purchaseOrderId], references: [purchaseId])
 }
