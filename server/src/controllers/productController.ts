@@ -3,37 +3,210 @@ import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
-/**
- * Fetches all products from the database, optionally filtering by a search term.
- * Includes associated product variants and category details.
- */
-export const getProducts = async (req: Request, res: Response): Promise<void> => {
-  try {
-    // Extract the search query parameter, if provided.
-    // `req.query.search` retrieves the `search` query parameter from the URL.
-    // Example URL: `/products?search=phone`
-    const search = req.query.search?.toString();
 
-    // Query the database for products.
-    const products = await prisma.products.findMany({
-      where: {
-        // If a search term is provided, filter products by name containing the search term.
-        // The `contains` operator performs a case-insensitive search by default.
-        name: {
-          contains: search, 
-        },
-      },
-      include: {
-        ProductVariants: true, // Include related product variants in the response.
-        category: true, // Include the associated category details for each product.
+/**
+ * Retrieves all categories or a specific category by ID.
+ * If an ID is provided in the request params, it fetches the category with that ID.
+ */
+export const getCategories = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+
+    // If an ID is provided, fetch a specific category by ID.
+    if (id) {
+      const category = await prisma.categories.findUnique({
+        where: { id: parseInt(id, 10) }, // Ensure ID is an integer.
+      });
+
+      // If the category does not exist, return a 404 response.
+      if (!category) {
+        res.status(404).json({ message: "Category not found" });
+        return;
+      }
+
+      // Return the found category.
+      res.status(200).json(category);
+      return;
+    }
+
+    // Fetch all categories if no ID is provided.
+    const categories = await prisma.categories.findMany();
+
+    // Return the list of categories.
+    res.status(200).json(categories);
+  } catch (error) {
+    // Handle any errors during the process.
+    res.status(500).json({ message: "Error retrieving categories", error });
+  }
+};
+
+/**
+ * Creates a new category in the database.
+ * The request body must include the category's name and an optional description.
+ */
+export const createCategory = async (req: Request, res: Response): Promise<void> => {
+  try {
+    // Destructure required fields from the request body.
+    const { name, description } = req.body;
+
+    // Create a new category record in the database.
+    const category = await prisma.categories.create({
+      data: {
+        name,        // The name of the category (e.g., "Electronics").
+        description, // A brief description of the category, if provided.
       },
     });
 
-    // Return the products as a JSON response.
-    res.json(products);
+    // Send the created category as a response with status code 201 (Created).
+    res.status(201).json(category);
   } catch (error) {
-    // Handle any errors that occur during the database query.
-    // Respond with a 500 Internal Server Error and include the error details.
+    // Handle any errors that occur during category creation.
+    res.status(500).json({ message: "Error creating category", error });
+  }
+};
+
+
+/**
+ * Retrieves all products or a specific product by ID.
+ * If an ID is provided in the request params, it fetches the product with that ID.
+ */
+export const getProducts = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { productId } = req.params;
+
+    // If a product ID is provided, fetch the specific product.
+    if (productId) {
+      const product = await prisma.products.findUnique({
+        where: { productId }, // Match by product ID.
+        include: {
+          category: true, // Include related category details.
+          ProductVariants: true, // Include related product variants.
+        },
+      });
+
+      // If the product does not exist, return a 404 response.
+      if (!product) {
+        res.status(404).json({ message: "Product not found" });
+        return;
+      }
+
+      // Return the found product.
+      res.status(200).json(product);
+      return;
+    }
+
+    // Fetch all products if no ID is provided.
+    const products = await prisma.products.findMany({
+      include: {
+        category: true, // Include related category details.
+        ProductVariants: true, // Include related product variants.
+      },
+    });
+
+    // Return the list of products.
+    res.status(200).json(products);
+  } catch (error) {
+    // Handle any errors during the process.
     res.status(500).json({ message: "Error retrieving products", error });
+  }
+};
+
+/**
+ * Creates a new product in the database.
+ * The request body must include all necessary product details.
+ */
+export const createProduct = async (req: Request, res: Response): Promise<void> => {
+  try {
+    // Destructure required fields from the request body.
+    const { name, description, price, imageUrl, categoryId } = req.body;
+
+    // Create a new product record in the database.
+    const product = await prisma.products.create({
+      data: {
+        productId: crypto.randomUUID(), // Generate a unique ID for the product.
+        name,                          // The name of the product (e.g., "Smartphone").
+        description,                   // A brief description of the product, if provided.
+        price,                         // The price of the product (e.g., 699.99).
+        imageUrl,                      // The URL or path to the product's image.
+        categoryId,                    // The ID of the category this product belongs to, if any.
+      },
+    });
+
+    // Send the created product as a response with status code 201 (Created).
+    res.status(201).json(product);
+  } catch (error) {
+    // Handle any errors that occur during product creation.
+    res.status(500).json({ message: "Error creating product", error });
+  }
+};
+
+/**
+ * Retrieves all product variants or a specific product variant by ID.
+ * If an ID is provided in the request params, it fetches the product variant with that ID.
+ */
+export const getProductVariants = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { productVariantId } = req.params;
+
+    // If a variant ID is provided, fetch the specific product variant.
+    if (productVariantId) {
+      const productVariant = await prisma.productVariants.findUnique({
+        where: { productVariantId }, // Match by product variant ID.
+        include: {
+          product: true, // Include the related product details.
+        },
+      });
+
+      // If the product variant does not exist, return a 404 response.
+      if (!productVariant) {
+        res.status(404).json({ message: "Product Variant not found" });
+        return;
+      }
+
+      // Return the found product variant.
+      res.status(200).json(productVariant);
+      return;
+    }
+
+    // Fetch all product variants if no ID is provided.
+    const productVariants = await prisma.productVariants.findMany({
+      include: {
+        product: true, // Include the related product details.
+      },
+    });
+
+    // Return the list of product variants.
+    res.status(200).json(productVariants);
+  } catch (error) {
+    // Handle any errors during the process.
+    res.status(500).json({ message: "Error retrieving product variants", error });
+  }
+};
+
+/**
+ * Creates a new product variant in the database.
+ * The request body must include the product ID and necessary variant details.
+ */
+export const createProductVariant = async (req: Request, res: Response): Promise<void> => {
+  try {
+    // Destructure required fields from the request body.
+    const { productId, sku, variantName, attributes } = req.body;
+
+    // Create a new product variant record in the database.
+    const productVariant = await prisma.productVariants.create({
+      data: {
+        productVariantId: crypto.randomUUID(), // Generate a unique ID for the product variant.
+        productId,                            // The ID of the product this variant belongs to.
+        sku,                                  // The unique SKU (Stock Keeping Unit) for the variant.
+        variantName,                          // The name of the variant (e.g., "Black, 128GB").
+        attributes,                           // Additional attributes in JSON format (e.g., size, color).
+      },
+    });
+
+    // Send the created product variant as a response with status code 201 (Created).
+    res.status(201).json(productVariant);
+  } catch (error) {
+    // Handle any errors that occur during product variant creation.
+    res.status(500).json({ message: "Error creating product variant", error });
   }
 };

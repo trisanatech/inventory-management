@@ -93,14 +93,14 @@ const Products = () => {
                   {product.name}
                 </h3>
                 <p className="text-gray-800">${product.price.toFixed(2)}</p>
-                <div className="text-sm text-gray-600 mt-1">
+                {/* <div className="text-sm text-gray-600 mt-1">
                   Stock: {product.stockQuantity}
                 </div>
                 {product.rating && (
                   <div className="flex items-center mt-2">
                     <Rating rating={product.rating} />
                   </div>
-                )}
+                )} */}
               </div>
             </div>
           ))

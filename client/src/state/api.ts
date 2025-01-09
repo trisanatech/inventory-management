@@ -1,60 +1,44 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
+// interfaces for the models
+export interface Category {
+  id: number;
+  name: string;
+  description?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface Product {
   productId: string;
   name: string;
+  description?: string;
   price: number;
-  rating?: number;
-  stockQuantity: number;
+  imageUrl?: string;
+  categoryId?: number;
+  createdAt: string;
+  updatedAt: string;
+  category?: Category; 
+  ProductVariants?: ProductVariant[]; 
 }
 
-export interface NewProduct {
-  name: string;
-  price: number;
-  rating?: number;
-  stockQuantity: number;
-}
-
-export interface UpdatedProduct {
-  name?: string;
-  price?: number;
-  rating?: number;
-  stockQuantity?: number;
-}
-
-export interface SalesSummary {
-  salesSummaryId: string;
-  totalValue: number;
-  changePercentage?: number;
-  date: string;
-}
-
-export interface PurchaseSummary {
-  purchaseSummaryId: string;
-  totalPurchased: number;
-  changePercentage?: number;
-  date: string;
-}
-
-export interface ExpenseSummary {
-  expenseSummarId: string;
-  totalExpenses: number;
-  date: string;
-}
-
-export interface ExpenseByCategorySummary {
-  expenseByCategorySummaryId: string;
-  category: string;
-  amount: string;
-  date: string;
+export interface ProductVariant {
+  productVariantId: string;
+  productId: string;
+  sku: string;
+  variantName?: string;
+  attributes?: Record<string, any>;
+  createdAt: string;
+  updatedAt: string;
+  product?: Product; 
 }
 
 export interface DashboardMetrics {
   popularProducts: Product[];
-  salesSummary: SalesSummary[];
-  purchaseSummary: PurchaseSummary[];
-  expenseSummary: ExpenseSummary[];
-  expenseByCategorySummary: ExpenseByCategorySummary[];
+  // salesSummary: SalesSummary[];
+  // purchaseSummary: PurchaseSummary[];
+  // expenseSummary: ExpenseSummary[];
+  // expenseByCategorySummary: ExpenseByCategorySummary[];
 }
 
 export interface User {
@@ -63,50 +47,74 @@ export interface User {
   email: string;
 }
 
+// Create API
 export const api = createApi({
-  baseQuery: fetchBaseQuery({ baseUrl: process.env.NEXT_PUBLIC_API_BASE_URL }),
-  reducerPath: "api",
-  tagTypes: ["DashboardMetrics", "Products", "Users", "Expenses"],
-  endpoints: (build) => ({
-    getDashboardMetrics: build.query<DashboardMetrics, void>({
-      query: () => "/dashboard",
-      providesTags: ["DashboardMetrics"],
+  baseQuery: fetchBaseQuery({ baseUrl:  process.env.NEXT_PUBLIC_API_BASE_URL }),
+  reducerPath: "api", 
+  tagTypes: ["DashboardMetrics","Products","ProductVariants", "Users"], 
+  endpoints: (builder) => ({
+
+    getDashboardMetrics: builder.query<DashboardMetrics, void>({
+          query: () => "/dashboard",
+          providesTags: ["DashboardMetrics"],
+        }),
+    
+    getCategories: builder.query<Category[], void>({
+      query: () => "/categories",
     }),
-    getProducts: build.query<Product[], string | void>({
+    getCategoryById: builder.query<Category, number>({
+      query: (id) => `/categories/${id}`,
+    }),
+
+    
+    getProducts: builder.query<Product[], string | void>({
       query: (search) => ({
         url: "/products",
-        params: search ? { search } : {},
+        params: search ? { search } : {}, 
       }),
-      providesTags: ["Products"],
+      providesTags: ["Products"], // Enable caching and invalidation
     }),
-    createProduct: build.mutation<Product, NewProduct>({
+    getProductById: builder.query<Product, string>({
+      query: (productId) => `/products/${productId}`,
+    }),
+
+    createProduct: builder.mutation<Product, Partial<Product>>({
       query: (newProduct) => ({
         url: "/products",
         method: "POST",
         body: newProduct,
       }),
-      invalidatesTags: ["Products"],
+      invalidatesTags: ["Products"], // Invalidate cache after creation
     }),
-    updateProduct: build.mutation<
-      Product,
-      { id: string; updatedProduct: UpdatedProduct }
-    >({
-      query: ({ id, updatedProduct }) => ({
-        url: `/products/${id}`,
-        method: "PUT",
-        body: updatedProduct,
+
+    
+    getProductVariants: builder.query<ProductVariant[], string | void>({
+      query: (search) => ({
+        url: "/product-variants",
+        params: search ? { search } : {}, 
       }),
-      invalidatesTags: ["Products"],
+      providesTags: ["ProductVariants"], // Enable caching for variants
     }),
-    getUsers: build.query<User[], void>({
+    getProductVariantById: builder.query<ProductVariant, string>({
+      query: (productVariantId) => `/product-variants/${productVariantId}`,
+    }),
+    createProductVariant: builder.mutation<ProductVariant, Partial<ProductVariant>>({
+      query: (newVariant) => ({
+        url: "/product-variants",
+        method: "POST",
+        body: newVariant,
+      }),
+      invalidatesTags: ["ProductVariants"], // Invalidate cache after creation
+    }),
+
+
+
+ getUsers: builder.query<User[], void>({
       query: () => "/users",
       providesTags: ["Users"],
     }),
-    getExpensesByCategory: build.query<ExpenseByCategorySummary[], void>({
-      query: () => "/expenses",
-      providesTags: ["Expenses"],
-    }),
-    login: build.mutation<
+
+    login: builder.mutation<
       { token: string },
       { email: string; password: string }
     >({
@@ -117,7 +125,7 @@ export const api = createApi({
       }),
       invalidatesTags: ["Users"],
     }),
-    signup: build.mutation<
+    signup: builder.mutation<
       { token: string },
       { name: string; email: string; password: string }
     >({
@@ -136,16 +144,24 @@ export const api = createApi({
       }),
       invalidatesTags: ["Users"],
     }),
+
   }),
 });
 
+// Export hooks generated by the API
 export const {
   useGetDashboardMetricsQuery,
+  
+  useGetCategoriesQuery,
+  useGetCategoryByIdQuery,
   useGetProductsQuery,
+  useGetProductByIdQuery,
   useCreateProductMutation,
-  useUpdateProductMutation, // Added hook for updating products
+  useGetProductVariantsQuery,
+  useGetProductVariantByIdQuery,
+  useCreateProductVariantMutation,
+
   useGetUsersQuery,
-  useGetExpensesByCategoryQuery,
   useLoginMutation,
   useSignupMutation,
 } = api;

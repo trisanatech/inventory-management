@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.login = void 0;
+exports.signup = exports.login = void 0;
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const prisma = require("./prisma");
@@ -37,3 +37,33 @@ const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     res.json({ token });
 });
 exports.login = login;
+const signup = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { name, email, password } = req.body;
+    if (!name || !email || !password) {
+        res.status(400).json({ message: "Name, email, and password are required" });
+        return;
+    }
+    const existingUser = yield prisma.user.findUnique({
+        where: { email },
+    });
+    if (existingUser) {
+        res.status(400).json({ message: "Email already exists" });
+        return;
+    }
+    const hashedPassword = yield bcrypt.hash(password, 10);
+    const user = yield prisma.user.create({
+        data: {
+            name,
+            email,
+            password: hashedPassword,
+            role: { connect: { name: "user" } },
+        },
+    });
+    res.json({ user });
+    // catch
+    // (error) {
+    //   console.error(error);
+    //   res.status(500).json({ message: "Internal server error" });
+    // }
+});
+exports.signup = signup;
