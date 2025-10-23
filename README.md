@@ -1,45 +1,72 @@
-# Build a Fullstack Inventory Management Dashboard
+# 📦 Fullstack Inventory Management Dashboard
 
-[![Tutorial Video](https://img.youtube.com/vi/ddKQ8sZo_v8/0.jpg)](https://www.youtube.com/watch?v=ddKQ8sZo_v8)
+> A comprehensive inventory management system built with modern web technologies, designed to streamline inventory tracking and management processes.
 
-Link to related video: https://www.youtube.com/watch?v=ddKQ8sZo_v8
+[![Status](https://img.shields.io/badge/Status-Active-success?style=flat-square)]()
+[![Next.js](https://img.shields.io/badge/Next.js-13+-black?logo=next.js)]()
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue?logo=typescript)]()
+[![TailwindCSS](https://img.shields.io/badge/TailwindCSS-3.x-teal?logo=tailwindcss)]()
+[![Redux Toolkit](https://img.shields.io/badge/Redux%20Toolkit-1.8+-purple?logo=redux)]()
+[![License](https://img.shields.io/badge/License-MIT-yellow.svg)]()
 
-## Tutorial
+---
 
-This repository contains the code corresponding to an in-depth tutorial available on my YouTube channel. It is highly suggested to watch the [tutorial video](https://www.youtube.com/watch?v=ddKQ8sZo_v8) as it includes detailed instructions on how to set up everything, including deploying AWS. This tutorial is designed for both beginners and experts.
+## 🧠 Overview
 
-Join our [Discord community](https://discord.com/channels/1070200085440376872/1267499814678171698) for discussions about this specific app.
+This project implements a fullstack inventory management dashboard, enabling users to efficiently manage and track inventory items. The application is built using:
 
-## Tech Stack
+- **Frontend**: [Next.js 13+](https://nextjs.org/), [TypeScript](https://www.typescriptlang.org/), [Tailwind CSS](https://tailwindcss.com/), [Redux Toolkit](https://redux-toolkit.js.org/)
+- **Backend**: [Node.js](https://nodejs.org/), [Express.js](https://expressjs.com/), [MongoDB](https://www.mongodb.com/)
 
-- **Next JS**
-- **Tailwind**
-- **Redux Toolkit**
-- **Redux Toolkit Query**
-- **Material UI Data Grid**
-- **Node.js**
-- **Prisma**
-- **AWS EC2**
-- **AWS RDS**
-- **AWS API Gateway**
-- **AWS Amplify**
-- **AWS S3**
+The system provides features such as:
 
-## Resources and Links
+- Product management
+- Stock tracking
+- User authentication
+- Responsive design for both desktop and mobile devices
 
-### Image Files
+---
 
-- [Server assets to download](https://github.com/ed-roh/inventory-management/tree/master/server/assets)
+## 🔧 Features
 
-### Configuration and Code
+- **User Authentication**: Secure login and registration system.
+- **Product Management**: Add, edit, and delete products.
+- **Stock Tracking**: Monitor stock levels and product details.
+- **Responsive Design**: Optimized for various screen sizes.
+- **Admin Dashboard**: Overview of inventory status and activities.
 
-- [tailwind.config.ts](https://github.com/ed-roh/inventory-management/blob/master/client/tailwind.config.ts) (to copy)
-- [Redux store file](https://github.com/ed-roh/inventory-management/blob/master/client/src/app/redux.tsx) (to copy)
-- [Seed files for database](https://github.com/ed-roh/inventory-management/blob/master/server/prisma/seed.ts) (to copy)
-- [Seed data files](https://github.com/ed-roh/inventory-management/tree/master/server/prisma/seedData) (to download)
+---
 
-### Additional Resources
+## ⚙️ Tech Stack
 
-- [Data model diagram](https://drawsql.app/teams/team-3023/diagrams/56-inventorymanagement)
-- [Prisma schema file](https://github.com/ed-roh/inventory-management/blob/master/server/prisma/schema.prisma)
-- [AWS commands](https://github.com/ed-roh/inventory-management/blob/master/server/aws-ec2-instructions.md)
+| Layer              | Technology                                |
+|--------------------|-------------------------------------------|
+| **Frontend**       | [Next.js 13+](https://nextjs.org/)        |
+|                    | [TypeScript](https://www.typescriptlang.org/) |
+|                    | [Tailwind CSS](https://tailwindcss.com/)  |
+|                    | [Redux Toolkit](https://redux-toolkit.js.org/) |
+| **Backend**        | [Node.js](https://nodejs.org/)            |
+|                    | [Express.js](https://expressjs.com/)      |
+|                    | [MongoDB](https://www.mongodb.com/)       |
+| **Authentication** | [JWT](https://jwt.io/)                   |
+| **Deployment**     | [AWS](https://aws.amazon.com/)            |
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+Ensure you have the following installed:
+
+- [Node.js](https://nodejs.org/)
+- [MongoDB](https://www.mongodb.com/)
+- [Git](https://git-scm.com/)
+
+### Installation
+
+Clone the repository and install dependencies:
+
+```bash
+git clone https://github.com/trisanatech/inventory-management.git
+cd inventory-management
